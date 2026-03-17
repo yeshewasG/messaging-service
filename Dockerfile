@@ -26,7 +26,7 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 
 # Standardize port
-EXPOSE 3000
+EXPOSE 5000
 
 # Default command (will be overridden in docker-compose)
 CMD ["npm", "start"]

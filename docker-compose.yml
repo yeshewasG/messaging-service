@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis_messaging
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - messaging_net
+
+  api:
+    build: .
+    container_name: messaging_api
+    restart: always
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    env_file: .env
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    networks:
+      - messaging_net
+    # Runs the express server
+    command: node dist/server.js
+
+  worker:
+    build: .
+    container_name: messaging_worker
+    restart: always
+    env_file: .env
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+      - api
+    networks:
+      - messaging_net
+    # Overrides CMD to run the worker specifically
+    command: node dist/workers/message.worker.js
+
+networks:
+  messaging_net:
+    driver: bridge
+
+volumes:
+  redis_data:

@@ -1,0 +1,33 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main # Adjust this if your default branch is 'master'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ~/messaging-service
+
+            # Pull latest changes
+            git pull origin main
+
+            # Rebuild and restart containers
+            # --build ensures any code changes in /src are re-compiled
+            docker-compose up -d --build
+
+            # Prune old images to save disk space on VPS
+            docker image prune -f

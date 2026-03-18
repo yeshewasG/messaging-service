@@ -21,7 +21,6 @@ const worker = new Worker(
         status: "processing",
         $inc: { retryCount: 1 },
       });
-
       if (type === "sms") await sendSMS(to, content);
       if (type === "email") await sendEmail(to, subject!, content);
 

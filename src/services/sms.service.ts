@@ -1,8 +1,5 @@
-import axios from "axios";
+import { ioEmitter } from "./socket.service";
 
 export async function sendSMS(to: string, message: string) {
-  await axios.post("https://api.africastalking.com/version1/messaging", {
-    to,
-    message,
-  });
+  ioEmitter.emit("sms", { to, content: message });
 }

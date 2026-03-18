@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { MessageJobModel } from "../models/message.model";
 import { messageQueue } from "../queue/message.queue";
-import { sendEmail as mail } from "../services/email.service";
+import { ioEmitter } from "../services/socket.service";
 
 export const sendSMS = async (req: Request, res: Response) => {
   const { to, message, subject } = req.body;
@@ -13,13 +13,13 @@ export const sendSMS = async (req: Request, res: Response) => {
     content: message,
     status: "queued",
   });
-
-  await messageQueue.add("send", {
-    id: job._id.toString(),
-    type: "sms",
-    to,
-    content: message,
-  });
+  ioEmitter.emit("sms", { to, content: message });
+  // await messageQueue.add("send", {
+  //   id: job._id.toString(),
+  //   type: "sms",
+  //   to,
+  //   content: message,
+  // });
 
   res.json({ success: true, id: job._id });
 };

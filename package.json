@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev:server": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "dev:worker": "ts-node-dev --respawn --transpile-only src/workers/message.worker.ts",
+    "dev:server": "tsx watch src/server.ts",
+    "dev:worker": "cross-env PORT=0 tsx watch src/workers/message.worker.ts",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:worker\""
   },
   "keywords": [],
@@ -15,8 +16,11 @@
   "license": "ISC",
   "dependencies": {
     "@bull-board/express": "^6.20.5",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "@socket.io/redis-emitter": "^5.1.0",
     "axios": "^1.13.6",
     "bullmq": "^5.70.4",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "express": "^5.2.1",
@@ -24,7 +28,10 @@
     "mongoose": "^9.3.0",
     "nodemailer": "^8.0.2",
     "pg": "^8.20.0",
-    "uuid": "^13.0.0"
+    "redis": "^5.11.0",
+    "socket.io": "^4.8.3",
+    "uuid": "^13.0.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

@@ -1,40 +1,29 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export type MessageType = "sms" | "email";
-export type MessageStatus = "queued" | "processing" | "sent" | "failed";
-
-export interface IMessageJob extends Document {
-  type: MessageType;
+export interface IMessage extends Document {
+  senderId: string;
+  receiverId: string;
+  content: string;
+  type: "sms" | "email";
   to: string;
   subject?: string;
-  content: string;
-  status: MessageStatus;
+  status: string;
   retryCount: number;
   failureReason?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  timestamp: Date;
 }
 
-const messageSchema = new Schema<IMessageJob>(
-  {
-    type: { type: String, enum: ["sms", "email"], required: true },
-    to: { type: String, required: true },
-    subject: { type: String },
-    content: { type: String, required: true },
-    status: {
-      type: String,
-      enum: ["queued", "processing", "sent", "failed"],
-      default: "queued",
-    },
-    retryCount: { type: Number, default: 0 },
-    failureReason: { type: String },
-  },
-  {
-    timestamps: true,
-  },
-);
+const MessageSchema: Schema = new Schema({
+  senderId: { type: String, required: true },
+  receiverId: { type: String, required: true },
+  content: { type: String, required: true },
+  type: { type: String, required: true },
+  to: { type: String, required: true },
+  subject: { type: String },
+  status: { type: String, default: "queued" },
+  retryCount: { type: Number, default: 0 },
+  failureReason: { type: String },
+  timestamp: { type: Date, default: Date.now },
+});
 
-export const MessageJobModel = mongoose.model<IMessageJob>(
-  "MessageJob",
-  messageSchema,
-);
+export default mongoose.model<IMessage>("Message", MessageSchema);

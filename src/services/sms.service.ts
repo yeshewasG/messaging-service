@@ -1,5 +1,19 @@
-import { ioEmitter } from "./socket.service";
+import redis from "./redis.service";
 
-export async function sendSMS(to: string, message: string) {
-  ioEmitter.emit("sms", { to, content: message });
+// Simulate SMS send and publish a socket event
+export async function sendSMS(to: string, content: string, receiverId: string) {
+  console.log(`Sending SMS to ${to}: ${content} :${receiverId}`);
+
+  // After sending, publish to Redis so web server can notify the client
+  const event = {
+    receiverId,
+    event: "sms",
+    payload: {
+      to,
+      content,
+      timestamp: new Date(),
+    },
+  };
+
+  await redis.publish("socket_events", JSON.stringify(event));
 }

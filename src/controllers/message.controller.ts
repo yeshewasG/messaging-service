@@ -1,47 +1,63 @@
 import { Request, Response } from "express";
-import { MessageJobModel } from "../models/message.model";
-import { messageQueue } from "../queue/message.queue";
-import { ioEmitter } from "../services/socket.service";
+import MessageModel from "../models/message.model";
+import redis from "../services/redis.service";
 
 export const sendSMS = async (req: Request, res: Response) => {
-  const { to, message, subject } = req.body;
+  const { senderId, receiverId, content, to, subject } = req.body;
 
-  const job = await MessageJobModel.create({
+  if (!senderId || !receiverId || !content || !to) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  // Store new message/job in DB
+  const message = await MessageModel.create({
+    senderId,
+    receiverId,
+    content,
     type: "sms",
     to,
-    subject,
-    content: message,
     status: "queued",
+    retryCount: 0,
   });
-  ioEmitter.emit("sms", { to, content: message });
-  // await messageQueue.add("send", {
-  //   id: job._id.toString(),
-  //   type: "sms",
-  //   to,
-  //   content: message,
-  // });
 
-  res.json({ success: true, id: job._id });
+  await redis.lpush(
+    "sms_jobs",
+    JSON.stringify({ receiverId, id: message._id, type: "sms", to, content }),
+  );
+
+  return res.json({ status: "enqueued", message });
 };
 
 export const sendEmail = async (req: Request, res: Response) => {
-  const { to, subject, message } = req.body;
+  const { senderId, receiverId, content, to, subject } = req.body;
 
-  const job = await MessageJobModel.create({
+  if (!senderId || !receiverId || !content || !to) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  // Store new message/job in DB
+  const message = await MessageModel.create({
+    senderId,
+    receiverId,
+    content,
     type: "email",
     to,
     subject,
-    content: message,
     status: "queued",
+    retryCount: 0,
   });
 
-  await messageQueue.add("send", {
-    id: job._id.toString(),
-    type: "email",
-    to,
-    subject,
-    content: message,
-  });
+  await redis.lpush(
+    "message_jobs",
+    JSON.stringify({
+      receiverId,
+      id: message._id,
+      type: "email",
+      to,
+      subject,
+      content,
+    }),
+  );
 
-  res.json({ success: true, id: job._id });
+  return res.json({ status: "enqueued", message });
 };

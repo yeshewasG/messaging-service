@@ -14,7 +14,7 @@ services:
       - redis
     networks:
       - messaging_net
-      # - traefik-net
+      - traefik-net
     expose:
       - "5000"
     labels:
@@ -42,5 +42,5 @@ volumes:
 networks:
   messaging_net:
     driver: bridge
-  # traefik-net:
-  #   external: true
+  traefik-net:
+    external: true

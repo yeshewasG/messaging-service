@@ -23,7 +23,8 @@ jobs:
             cd ~/messaging-service
 
             # Pull latest changes
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
 
             # Rebuild and restart containers
             # --build ensures any code changes in /src are re-compiled

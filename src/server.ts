@@ -31,7 +31,10 @@ io.on("connection", (socket) => {
 const redisSub = redis.duplicate();
 redisSub.subscribe("socket_events");
 redisSub.on("message", (_channel, message) => {
+  console.log("event");
+
   const { receiverId, event, payload } = JSON.parse(message);
+  console.log(message);
 
   io.to(receiverId).emit(event, payload);
 });

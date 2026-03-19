@@ -46,7 +46,6 @@ export const sendEmail = async (req: Request, res: Response) => {
     status: "queued",
     retryCount: 0,
   });
-
   await redis.lpush(
     "message_jobs",
     JSON.stringify({

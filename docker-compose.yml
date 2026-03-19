@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   api:
     build:
@@ -24,6 +22,8 @@ services:
       - "traefik.http.routers.messaging.entrypoints=websecure"
       - "traefik.http.routers.messaging.tls.certresolver=leresolver"
       - "traefik.http.services.messaging.loadbalancer.server.port=5000"
+
+    command: node dist/workers/message.worker.js
 
   redis:
     image: redis:7

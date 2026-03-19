@@ -3,6 +3,7 @@ import { sendSMS } from "../services/sms.service";
 import MessageModel from "../models/message.model";
 import redis from "../services/redis.service";
 import "dotenv/config";
+import { sendEmail } from "../services/email.service";
 
 // MongoDB connection
 mongoose
@@ -17,14 +18,16 @@ const QUEUE = "sms_jobs";
 const RETRY_LIMIT = 3;
 
 async function processJob(job: any) {
-  const { id, receiverId, to, content } = job;
+  const { id, receiverId, type, to, subject, content } = job.data;
 
   try {
     await MessageModel.findByIdAndUpdate(id, {
       status: "processing",
       $inc: { retryCount: 1 },
     });
-    await sendSMS(to, content, receiverId);
+    if (type === "sms") await sendSMS(to, content, receiverId);
+    if (type === "email") await sendEmail(to, subject!, content);
+
     await MessageModel.findByIdAndUpdate(id, { status: "sent" });
   } catch (error: any) {
     const msg = await MessageModel.findById(id);

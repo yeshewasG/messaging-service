@@ -1,67 +1,46 @@
-version: "3.9"
+version: "3.8"
 
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: redis_messaging
-    restart: always
-    # ports:
-    #   - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - messaging_net
-
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: messaging_api
-    restart: always
-    expose:
-      - "5000"
     # ports:
-    #   - "${PORT:-5000}:${PORT:-5000}"
-    env_file: .env
-    environment:
-      - REDIS_HOST=redis
+    #   - "${PORT:-5000}:5000"
+    env_file:
+      - .env
     depends_on:
       - redis
     networks:
       - messaging_net
-      - traefik-net
-    # Runs the express server
+      # - traefik-net
+    expose:
+      - "5000"
     labels:
       - "traefik.enable=true"
-      # IMPORTANT: This label tells your specific Traefik instance to pick this up
-      # Replace 'messaging-proxy' with the constraint name set in your existing Traefik
       - "traefik.docker.network=traefik-net"
-
       - "traefik.http.routers.messaging.rule=Host(`messaging.adeylab.com`)"
       - "traefik.http.routers.messaging.entrypoints=websecure"
       - "traefik.http.routers.messaging.tls.certresolver=leresolver"
       - "traefik.http.services.messaging.loadbalancer.server.port=5000"
 
-    command: node dist/server.js
-
-  worker:
-    build: .
-    container_name: messaging_worker
+  redis:
+    image: redis:7
+    container_name: redis_messaging
     restart: always
-    env_file: .env
-    environment:
-      - REDIS_HOST=redis
-    depends_on:
-      - redis
-      - api
+    # ports:
+    #   - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
     networks:
       - messaging_net
-    # Overrides CMD to run the worker specifically
-    command: node dist/workers/message.worker.js
+
+volumes:
+  redis_data:
 
 networks:
   messaging_net:
     driver: bridge
-  traefik-net:
-    external: true
-
-volumes:
-  redis_data:
+  # traefik-net:
+  #   external: true

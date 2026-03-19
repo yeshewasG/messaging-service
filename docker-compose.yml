@@ -23,6 +23,17 @@ services:
       - "traefik.http.routers.messaging.tls.certresolver=leresolver"
       - "traefik.http.services.messaging.loadbalancer.server.port=5000"
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: messaging_worker
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - messaging_net
     command: node dist/workers/message.worker.js
 
   redis:

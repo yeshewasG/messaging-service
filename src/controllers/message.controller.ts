@@ -21,7 +21,7 @@ export const sendSMS = async (req: Request, res: Response) => {
   });
 
   await redis.lpush(
-    "sms_jobs",
+    "message_jobs",
     JSON.stringify({ receiverId, id: message._id, type: "sms", to, content }),
   );
 

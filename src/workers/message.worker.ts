@@ -14,20 +14,20 @@ mongoose
   })
   .catch(console.error);
 
-const QUEUE = "sms_jobs";
+const QUEUE = "message_jobs";
 const RETRY_LIMIT = 3;
 
 async function processJob(job: any) {
-  const { id, receiverId, type, to, subject, content } = job.data;
+  const { id, receiverId, to, content, subject, type } = job;
 
   try {
     await MessageModel.findByIdAndUpdate(id, {
       status: "processing",
       $inc: { retryCount: 1 },
     });
-    if (type === "sms") await sendSMS(to, content, receiverId);
-    if (type === "email") await sendEmail(to, subject!, content);
 
+    if (type == "sms") await sendSMS(to, content, receiverId);
+    if (type == "email") await sendEmail(to, subject, content);
     await MessageModel.findByIdAndUpdate(id, { status: "sent" });
   } catch (error: any) {
     const msg = await MessageModel.findById(id);

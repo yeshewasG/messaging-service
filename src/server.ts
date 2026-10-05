@@ -22,18 +22,32 @@ connectDB();
 setSocketServer(io);
 
 io.on("connection", (socket) => {
+  console.log(`🔌 Socket client connected: ${socket.id}`);
+
   socket.on("join", (userId: string) => {
-    console.log(userId);
-    socket.join(userId);
+    if (userId) {
+      console.log(`👤 Socket ${socket.id} joined room: ${userId}`);
+      socket.join(userId);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`🔌 Socket client disconnected: ${socket.id}`);
   });
 });
 
 const redisSub = redis.duplicate();
 redisSub.subscribe("socket_events");
 redisSub.on("message", (_channel, message) => {
-  const { receiverId, event, payload } = JSON.parse(message);
-
-  io.to(receiverId).emit(event, payload);
+  try {
+    const { receiverId, event, payload } = JSON.parse(message);
+    if (receiverId && event) {
+      io.to(receiverId).emit(event, payload);
+      console.log(`📡 Emitted '${event}' event to room: ${receiverId}`);
+    }
+  } catch (err) {
+    console.error("Error processing Redis socket_event:", err);
+  }
 });
 
 const PORT = process.env.PORT || 5000;

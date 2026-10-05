@@ -46,9 +46,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      api:
+        condition: service_started
     networks:
       - messaging_net
-    command: sh -c "npx prisma db push --skip-generate && node dist/workers/message.worker.js"
+    command: node dist/workers/message.worker.js
 
   postgres:
     image: postgres:16-alpine

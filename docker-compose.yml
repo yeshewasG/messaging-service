@@ -27,7 +27,7 @@ services:
       - "traefik.http.routers.messaging.rule=Host(`messaging.adeylab.com`)"
       - "traefik.http.routers.messaging.entrypoints=websecure"
       - "traefik.http.routers.messaging.tls=true"
-      - "traefik.http.routers.messaging.tls.certresolver=leresolver"
+      - "traefik.http.routers.messaging.tls.certresolver=myresolver"
       - "traefik.http.services.messaging.loadbalancer.server.port=5000"
 
   worker:

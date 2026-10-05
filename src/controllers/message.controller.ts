@@ -4,19 +4,18 @@ import redis from "../services/redis.service";
 
 export const sendSMS = async (req: Request, res: Response) => {
   try {
-    const { senderId, receiverId, content, to } = req.body;
+    const { deviceId, content, to } = req.body;
 
-    if (!senderId || !receiverId || !content || !to) {
+    if (!deviceId || !content || !to) {
       return res.status(400).json({
-        error: "Missing required fields: senderId, receiverId, content, to",
+        error: "Missing required fields: deviceId, content, to",
       });
     }
 
     // Store new message in PostgreSQL via Prisma
     const message = await prisma.message.create({
       data: {
-        senderId: String(senderId),
-        receiverId: String(receiverId),
+        deviceId: String(deviceId),
         content: String(content),
         type: "sms",
         to: String(to),
@@ -30,7 +29,7 @@ export const sendSMS = async (req: Request, res: Response) => {
       "message_jobs",
       JSON.stringify({
         id: message.id,
-        receiverId: message.receiverId,
+        deviceId: message.deviceId,
         type: "sms",
         to: message.to,
         content: message.content,
@@ -46,19 +45,18 @@ export const sendSMS = async (req: Request, res: Response) => {
 
 export const sendEmail = async (req: Request, res: Response) => {
   try {
-    const { senderId, receiverId, content, to, subject } = req.body;
+    const { deviceId, content, to, subject } = req.body;
 
-    if (!senderId || !receiverId || !content || !to) {
+    if (!deviceId || !content || !to) {
       return res.status(400).json({
-        error: "Missing required fields: senderId, receiverId, content, to",
+        error: "Missing required fields: deviceId, content, to",
       });
     }
 
     // Store new message in PostgreSQL via Prisma
     const message = await prisma.message.create({
       data: {
-        senderId: String(senderId),
-        receiverId: String(receiverId),
+        deviceId: String(deviceId),
         content: String(content),
         type: "email",
         to: String(to),
@@ -73,7 +71,7 @@ export const sendEmail = async (req: Request, res: Response) => {
       "message_jobs",
       JSON.stringify({
         id: message.id,
-        receiverId: message.receiverId,
+        deviceId: message.deviceId,
         type: "email",
         to: message.to,
         subject: message.subject,

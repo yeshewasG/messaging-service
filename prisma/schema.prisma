@@ -19,10 +19,26 @@ enum MessageStatus {
   failed
 }
 
+model Device {
+  id         String    @id @default(uuid())
+  deviceId   String    @unique
+  name       String?
+  platform   String?
+  socketId   String?
+  isOnline   Boolean   @default(false)
+  lastSeenAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  messages Message[]
+
+  @@map("devices")
+}
+
 model Message {
   id            String        @id @default(uuid())
-  senderId      String
-  receiverId    String
+  deviceId      String
+  device        Device        @relation(fields: [deviceId], references: [deviceId])
   content       String
   type          MessageType
   to            String

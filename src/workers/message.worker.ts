@@ -8,7 +8,7 @@ const QUEUE = "message_jobs";
 const RETRY_LIMIT = 3;
 
 async function processJob(job: any) {
-  const { id, receiverId, to, content, subject, type } = job;
+  const { id, deviceId, to, content, subject, type } = job;
 
   if (!id) {
     console.error("Received job without an ID:", job);
@@ -28,7 +28,7 @@ async function processJob(job: any) {
     attempt = updated.retryCount;
 
     if (type === "sms") {
-      await sendSMS(to, content, receiverId);
+      await sendSMS(to, content, deviceId);
     } else if (type === "email") {
       await sendEmail(to, subject, content);
     } else {

@@ -1,12 +1,12 @@
 import redis from "./redis.service";
 
-// Simulate SMS send and publish a socket event
-export async function sendSMS(to: string, content: string, receiverId: string) {
-  console.log(`Sending SMS to ${to}: ${content} :${receiverId}`);
+// Relay the send request to the device (over the gateway app's socket) and publish a socket event
+export async function sendSMS(to: string, content: string, deviceId: string) {
+  console.log(`Relaying SMS to device ${deviceId}: ${to} - ${content}`);
 
-  // After sending, publish to Redis so web server can notify the client
+  // Publish to Redis so the web server can notify the target device's socket
   const event = {
-    receiverId,
+    deviceId,
     event: "sms",
     payload: {
       to,

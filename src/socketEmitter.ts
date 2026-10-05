@@ -6,7 +6,7 @@ export function setSocketServer(server: Server) {
   io = server;
 }
 
-export function emitToUser(userId: string, event: string, payload: any) {
+export function emitToDevice(deviceId: string, event: string, payload: any) {
   if (!io) throw new Error("Socket server not initialized!");
-  io.to(userId).emit(event, payload);
+  io.to(deviceId).emit(event, payload);
 }

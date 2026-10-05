@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MessageType {
+  sms
+  email
+}
+
+enum MessageStatus {
+  queued
+  processing
+  sent
+  failed
+}
+
+model Message {
+  id            String        @id @default(uuid())
+  senderId      String
+  receiverId    String
+  content       String
+  type          MessageType
+  to            String
+  subject       String?
+  status        MessageStatus @default(queued)
+  retryCount    Int           @default(0)
+  failureReason String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("messages")
+}

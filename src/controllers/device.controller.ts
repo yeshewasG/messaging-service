@@ -5,8 +5,14 @@ export const registerDevice = async (req: Request, res: Response) => {
   try {
     const { deviceId, name, platform } = req.body;
 
-    if (!deviceId) {
-      return res.status(400).json({ error: "Missing required field: deviceId" });
+    if (typeof deviceId !== "string" || !deviceId.trim()) {
+      return res.status(400).json({ error: "deviceId is required and must be a non-empty string" });
+    }
+    if (name !== undefined && typeof name !== "string") {
+      return res.status(400).json({ error: "name must be a string" });
+    }
+    if (platform !== undefined && typeof platform !== "string") {
+      return res.status(400).json({ error: "platform must be a string" });
     }
 
     const device = await prisma.device.upsert({
@@ -25,6 +31,6 @@ export const registerDevice = async (req: Request, res: Response) => {
     return res.status(200).json({ status: "registered", device });
   } catch (error: any) {
     console.error("Error registering device:", error);
-    return res.status(500).json({ error: error.message || "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

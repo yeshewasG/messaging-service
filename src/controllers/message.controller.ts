@@ -1,14 +1,34 @@
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../config/db";
 import redis from "../services/redis.service";
+import { validateCommonFields, PHONE_REGEX, EMAIL_REGEX } from "../utils/validation";
+
+function isForeignKeyViolation(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003"
+  );
+}
 
 export const sendSMS = async (req: Request, res: Response) => {
   try {
+    const fieldError = validateCommonFields(req.body);
+    if (fieldError) {
+      return res.status(400).json({ error: fieldError });
+    }
+
     const { deviceId, content, to } = req.body;
 
-    if (!deviceId || !content || !to) {
-      return res.status(400).json({
-        error: "Missing required fields: deviceId, content, to",
+    if (!PHONE_REGEX.test(String(to).trim())) {
+      return res.status(400).json({ error: "'to' must be a valid phone number" });
+    }
+
+    const device = await prisma.device.findUnique({
+      where: { deviceId: String(deviceId) },
+    });
+    if (!device) {
+      return res.status(404).json({
+        error: `Device '${deviceId}' is not registered. Register it via POST /api/devices/register first.`,
       });
     }
 
@@ -39,17 +59,35 @@ export const sendSMS = async (req: Request, res: Response) => {
     return res.status(201).json({ status: "enqueued", message });
   } catch (error: any) {
     console.error("Error enqueuing SMS:", error);
-    return res.status(500).json({ error: error.message || "Internal server error" });
+    if (isForeignKeyViolation(error)) {
+      return res.status(404).json({ error: "Device is not registered." });
+    }
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 export const sendEmail = async (req: Request, res: Response) => {
   try {
+    const fieldError = validateCommonFields(req.body);
+    if (fieldError) {
+      return res.status(400).json({ error: fieldError });
+    }
+
     const { deviceId, content, to, subject } = req.body;
 
-    if (!deviceId || !content || !to) {
-      return res.status(400).json({
-        error: "Missing required fields: deviceId, content, to",
+    if (!EMAIL_REGEX.test(String(to).trim())) {
+      return res.status(400).json({ error: "'to' must be a valid email address" });
+    }
+    if (subject !== undefined && typeof subject !== "string") {
+      return res.status(400).json({ error: "subject must be a string" });
+    }
+
+    const device = await prisma.device.findUnique({
+      where: { deviceId: String(deviceId) },
+    });
+    if (!device) {
+      return res.status(404).json({
+        error: `Device '${deviceId}' is not registered. Register it via POST /api/devices/register first.`,
       });
     }
 
@@ -82,6 +120,9 @@ export const sendEmail = async (req: Request, res: Response) => {
     return res.status(201).json({ status: "enqueued", message });
   } catch (error: any) {
     console.error("Error enqueuing Email:", error);
-    return res.status(500).json({ error: error.message || "Internal server error" });
+    if (isForeignKeyViolation(error)) {
+      return res.status(404).json({ error: "Device is not registered." });
+    }
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
